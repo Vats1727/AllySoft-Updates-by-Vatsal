@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Management</h1>
+
+    <div>
+        <input type="number" id="roll" placeholder="Roll No"/>
+        <input type="text" id="name" placeholder="Student Name"/>
+        <button onclick="addoredit()">Add</button>
+        <div id="error" class="error"></div>
+    </div>
+
+    <br><br>
+
+    <table id="studenttable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="summary" id="summary">0/0 selected</div>
+
+    <script>
+        let editRowRef = null; 
+
+        function addoredit(){
+            const roll = document.getElementById('roll').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const errorDiv = document.getElementById('error');
+
+            // validation if fields are empty
+            if(roll === "" || name === ""){
+                errorDiv.innerText = "Please fill both Roll No and Student Name.";
+                return;
+            }
+            else{
+                errorDiv.innerText = "";
+            }
+
+            const tableBody=document.querySelector("#studenttable tbody");
+
+            if(editRowRef === null){
+                // add new row
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td><input type="checkbox" class="rowCheck" onclick="updateSummary()"></td>
+                    <td>${roll}</td>
+                    <td>${name}</td>
+                    <td>
+                      <button onclick="editRow(this)">Edit</button>
+                      <button onclick="deleteRow(this)">Delete</button>
+                    </td>
+                `;
+            }
+            else{
+                // update existing row
+                editRowRef.cells[1].innerText = roll;
+                editRowRef.cells[2].innerText = name;
+                editRowRef = null;
+            }
+
+            // clear fields
+            document.getElementById('roll').value = "";
+            document.getElementById('name').value = "";
+
+            updateSummary();
+        }
+
+        function editRow(btn){
+            editRowRef = btn.closest("tr");
+            document.getElementById("roll").value = editRowRef.cells[1].innerText;
+            document.getElementById("name").value = editRowRef.cells[2].innerText;
+        }
+
+        function deleteRow(btn){
+            let row = btn.closest("tr");
+
+            // to handle delete operation while editing 
+            if(editRowRef === row){
+                editRowRef = null;
+                document.getElementById("roll").value = "";
+                document.getElementById("name").value = "";
+            }
+
+            row.remove();
+            updateSummary();
+        }
+
+        function toggleAll(root){
+            let checkboxes = document.querySelectorAll(".rowCheck");
+            checkboxes.forEach(cb => cb.checked = root.checked);
+            updateSummary();
+        }
+
+        function updateSummary(){
+            let checkboxes = document.querySelectorAll(".rowCheck");
+            let total = checkboxes.length;
+            let selected = [...checkboxes].filter(cb => cb.checked).length;
+
+            document.getElementById("summary").innerText = `${selected}/${total} selected`;
+
+            let selectAll = document.getElementById("selectAll");
+            selectAll.checked = (selected == total && total > 0);
+        }
+    </script>
+</body>
+</html>
